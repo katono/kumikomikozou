@@ -1,0 +1,56 @@
+/* H8/3048F */
+OUTPUT_ARCH(h8300h)
+ENTRY("_start")
+
+MEMORY
+{
+	romall(rx)		: o = 0x000000, l = 0x020000	/* 128KB */
+	vectors(r)		: o = 0x000000, l = 0x000100	/* top of ROM */
+	rom(rx)			: o = 0x000100, l = 0x01ff00
+
+	ramall(rwx)		: o = 0xffef10, l = 0x001000	/* 4KB */
+	data(rwx)		: o = 0xffef10, l = 0x000c00
+	stack(rw)		: o = 0xffff10, l = 0x000000	/* end of RAM */
+}
+
+SECTIONS
+{
+	.vectors : {
+		vector.o(.data)
+	} > vectors
+
+	.text : {
+		_text_start = . ;
+		*(.text)
+		_etext = . ;
+	} > rom
+
+	.rodata : {
+		_rodata_start = . ;
+		*(.strings)
+		*(.rodata)
+		*(.rodata.*)
+		_erodata = . ;
+	} > rom
+
+	.data : {
+		_data_start = . ;
+		*(.data)
+		_edata = . ;
+	} > data AT> rom
+
+	.bss : {
+		_bss_start = . ;
+		*(.bss)
+		*(COMMON)
+		_ebss = . ;
+	} > data AT> rom
+
+	. = ALIGN(4);
+	_end = . ;
+
+	.stack : {
+		_stack = .;
+	} > stack
+}
+
